@@ -1,381 +1,21 @@
 package com.mycompany.laundryitemm;
 
+import com.mycompany.laundryitemm.CuciExpress;
+import com.mycompany.laundryitemm.CuciKering;
+import com.mycompany.laundryitemm.CuciReguler;
+import com.mycompany.laundryitemm.CuciSetrika;
+import com.mycompany.laundryitemm.DapatDiantar;
+import com.mycompany.laundryitemm.DapatDinilai;
+import com.mycompany.laundryitemm.Pesanan;
+
 import java.util.Scanner;
-
-// ============================================================
-// SMART LAUNDRY - Tugas Gabungan LKP 2-7
-// Semua class & interface digabung dalam satu file (LaundryItemm.java).
-// Catatan: hanya class LaundryItemm yang boleh public di dalam file ini.
-//
-// Tambahan Modul 6 (Polymorphism):
-//   - Subclass baru: CuciExpress (total 4 subclass)
-//   - Array bertipe Superclass (upcasting), dynamic binding saat looping
-//   - Method berparameter Superclass: Main.prosesOrder(LaundryItemm)
-//   - Compile-time polymorphism: overloading hitungBiaya(), cariOrder(), cetakStruk()
-//
-// Tambahan Modul 7 (Abstraction):
-//   - LaundryItemm menjadi abstract class + abstract method
-//   - 2 interface baru: DapatDiantar dan DapatDinilai
-//   - CuciSetrika implements 2 interface sekaligus (multiple implements)
-//   - Pemanggilan method interface diamankan dengan instanceof
-// ============================================================
-
-// ==================== INTERFACE (Modul 7) ====================
-
-/** Kontrak: layanan yang bisa diantar ke rumah pelanggan. */
-interface DapatDiantar {
-    void antarKeRumah();
-}
-
-/** Kontrak: layanan yang bisa diberi rating oleh pelanggan. */
-interface DapatDinilai {
-    void beriRating(int rating);
-}
-
-/**
- * SUPERCLASS (ABSTRACT): LaundryItemm
- * Mewakili satu order laundry. Tidak bisa di-instansiasi langsung (Modul 7),
- * harus lewat salah satu subclass: CuciReguler, CuciKering, CuciSetrika, CuciExpress.
- */
-public abstract class LaundryItemm {
-
-    // Titik masuk program (agar tombol Run NetBeans langsung jalan dari file ini)
-    public static void main(String[] args) {
-        Main.main(args);
-    }
-
-    // STATIC: pencatat total objek yang berhasil dibuat (Modul 4)
-    private static int totalOrder = 0;
-    private static final double HARGA_PER_KG = 5000;
-
-    // ENCAPSULATION: semua field private
-    private int idOrder;
-    private String namaPelanggan;
-    private String jenisPakaian;
-    private double beratKg;
-
-    public LaundryItemm(String namaPelanggan, String jenisPakaian, double beratKg) {
-        setNamaPelanggan(namaPelanggan);
-        setJenisPakaian(jenisPakaian);
-        setBeratKg(beratKg);
-        totalOrder++;
-        this.idOrder = totalOrder;
-    }
-
-    // ===== GETTER =====
-    public int getIdOrder() { return idOrder; }
-    public String getNamaPelanggan() { return namaPelanggan; }
-    public String getJenisPakaian() { return jenisPakaian; }
-    public double getBeratKg() { return beratKg; }
-    public static int getTotalOrder() { return totalOrder; }
-    protected static double getHargaPerKg() { return HARGA_PER_KG; }
-
-    // ===== SETTER dengan VALIDASI =====
-    public void setNamaPelanggan(String namaPelanggan) {
-        if (namaPelanggan == null || namaPelanggan.trim().isEmpty()) {
-            throw new IllegalArgumentException("Nama pelanggan tidak boleh kosong!");
-        }
-        this.namaPelanggan = namaPelanggan.trim();
-    }
-
-    public void setJenisPakaian(String jenisPakaian) {
-        if (jenisPakaian == null || jenisPakaian.trim().isEmpty()) {
-            throw new IllegalArgumentException("Jenis pakaian tidak boleh kosong!");
-        }
-        this.jenisPakaian = jenisPakaian.trim();
-    }
-
-    public void setBeratKg(double beratKg) {
-        if (beratKg <= 0 || beratKg > 50) {
-            throw new IllegalArgumentException("Berat harus lebih dari 0 dan maksimal 50 kg!");
-        }
-        this.beratKg = beratKg;
-    }
-
-    // ===== ABSTRACT METHOD (Modul 7): WAJIB di-override semua subclass =====
-    /** Menjalankan proses khusus layanan ini (mencetak keterangan ke layar). */
-    public abstract void prosesLayanan();
-
-    /** Estimasi lama pengerjaan dalam jam. */
-    public abstract int getEstimasiJam();
-
-    // ===== METHOD YANG DI-OVERRIDE SUBCLASS (Modul 5) =====
-    public String getJenisLayanan() {
-        return "Cuci Reguler";
-    }
-
-    public String getDetail() {
-        return "-";
-    }
-
-    public double hitungBiaya() {
-        return beratKg * HARGA_PER_KG;
-    }
-
-    /** METHOD OVERLOADING / compile-time polymorphism (Modul 4 & 6) */
-    public double hitungBiaya(double diskonPersen) {
-        if (diskonPersen < 0 || diskonPersen > 100) {
-            throw new IllegalArgumentException("Diskon harus 0 - 100 persen!");
-        }
-        return hitungBiaya() * (1 - diskonPersen / 100);
-    }
-
-    public void tampilkanInfo() {
-        System.out.printf("| %-3d | %-12s | %-16s | %-10s | %6.1f | Rp %,9.0f | %-28s |%n",
-                idOrder, namaPelanggan, getJenisLayanan(), jenisPakaian,
-                beratKg, hitungBiaya(), getDetail());
-    }
-}
-
-/**
- * SUBCLASS 0: CuciReguler (layanan dasar).
- * Dulu LaundryItemm sendiri; kini jadi subclass karena superclass abstract.
- */
-class CuciReguler extends LaundryItemm {
-
-    public CuciReguler(String namaPelanggan, String jenisPakaian, double beratKg) {
-        super(namaPelanggan, jenisPakaian, beratKg);
-    }
-
-    @Override
-    public String getJenisLayanan() {
-        return "Cuci Reguler";
-    }
-
-    @Override
-    public void prosesLayanan() {
-        System.out.println("[Reguler] Pakaian " + getJenisPakaian() + " milik " + getNamaPelanggan()
-                + " dicuci biasa lalu dijemur di bawah sinar matahari.");
-    }
-
-    @Override
-    public int getEstimasiJam() {
-        System.out.println("[Estimasi] Cuci Reguler: pengerjaan sekitar 48 jam.");
-        return 48;
-    }
-}
-
-/**
- * SUBCLASS 1: CuciKering (cuci + pengeringan mesin).
- * Implements DapatDinilai.
- */
-class CuciKering extends LaundryItemm implements DapatDinilai {
-    private static final double TAMBAHAN_PER_KG = 3000;
-
-    private int suhuPengering;   // derajat Celsius
-    private int durasiMenit;
-    private int rating = 0;      // 0 = belum dinilai
-
-    public CuciKering(String namaPelanggan, String jenisPakaian, double beratKg,
-                      int suhuPengering, int durasiMenit) {
-        super(namaPelanggan, jenisPakaian, beratKg);   // super pada constructor
-        setSuhuPengering(suhuPengering);
-        setDurasiMenit(durasiMenit);
-    }
-
-    public int getSuhuPengering() { return suhuPengering; }
-    public int getDurasiMenit() { return durasiMenit; }
-    public int getRating() { return rating; }
-
-    public void setSuhuPengering(int suhuPengering) {
-        if (suhuPengering < 40 || suhuPengering > 90) {
-            throw new IllegalArgumentException("Suhu pengering harus 40 - 90 derajat Celsius!");
-        }
-        this.suhuPengering = suhuPengering;
-    }
-
-    public void setDurasiMenit(int durasiMenit) {
-        if (durasiMenit < 10 || durasiMenit > 120) {
-            throw new IllegalArgumentException("Durasi pengeringan harus 10 - 120 menit!");
-        }
-        this.durasiMenit = durasiMenit;
-    }
-
-    @Override
-    public String getJenisLayanan() {
-        return "Cuci Kering";
-    }
-
-    @Override
-    public String getDetail() {
-        return suhuPengering + " C, " + durasiMenit + " menit"
-                + (rating > 0 ? ", rating " + rating : "");
-    }
-
-    @Override
-    public double hitungBiaya() {
-        return super.hitungBiaya() + (getBeratKg() * TAMBAHAN_PER_KG);
-    }
-
-    // ----- abstract method dari superclass -----
-    @Override
-    public void prosesLayanan() {
-        System.out.println("[Kering] Pakaian " + getJenisPakaian() + " milik " + getNamaPelanggan()
-                + " dicuci, lalu dikeringkan mesin " + suhuPengering + " C selama " + durasiMenit + " menit.");
-    }
-
-    @Override
-    public int getEstimasiJam() {
-        System.out.println("[Estimasi] Cuci Kering: pengerjaan sekitar 24 jam.");
-        return 24;
-    }
-
-    // ----- kontrak interface DapatDinilai -----
-    @Override
-    public void beriRating(int rating) {
-        if (rating < 1 || rating > 5) {
-            throw new IllegalArgumentException("Rating harus 1 - 5!");
-        }
-        this.rating = rating;
-        System.out.println("[Rating] Order #" + getIdOrder() + " (Cuci Kering) diberi rating "
-                + rating + "/5 oleh " + getNamaPelanggan() + ".");
-    }
-}
-
-/**
- * SUBCLASS 2: CuciSetrika (cuci + setrika + pewangi).
- * MULTIPLE IMPLEMENTS: DapatDiantar dan DapatDinilai sekaligus.
- */
-class CuciSetrika extends LaundryItemm implements DapatDiantar, DapatDinilai {
-    private static final double TAMBAHAN_PER_KG = 4000;
-
-    private String jenisPewangi;
-    private boolean lipatRapi;
-    private int rating = 0;
-
-    public CuciSetrika(String namaPelanggan, String jenisPakaian, double beratKg,
-                       String jenisPewangi, boolean lipatRapi) {
-        super(namaPelanggan, jenisPakaian, beratKg);
-        setJenisPewangi(jenisPewangi);
-        this.lipatRapi = lipatRapi;
-    }
-
-    public String getJenisPewangi() { return jenisPewangi; }
-    public boolean isLipatRapi() { return lipatRapi; }
-    public int getRating() { return rating; }
-    public void setLipatRapi(boolean lipatRapi) { this.lipatRapi = lipatRapi; }
-
-    public void setJenisPewangi(String jenisPewangi) {
-        if (jenisPewangi == null || jenisPewangi.trim().isEmpty()) {
-            throw new IllegalArgumentException("Jenis pewangi tidak boleh kosong!");
-        }
-        this.jenisPewangi = jenisPewangi.trim();
-    }
-
-    @Override
-    public String getJenisLayanan() {
-        return "Cuci Setrika";
-    }
-
-    @Override
-    public String getDetail() {
-        return "Pewangi " + jenisPewangi + (lipatRapi ? ", dilipat" : ", digantung")
-                + (rating > 0 ? ", rating " + rating : "");
-    }
-
-    @Override
-    public double hitungBiaya() {
-        return super.hitungBiaya() + (getBeratKg() * TAMBAHAN_PER_KG);
-    }
-
-    // ----- abstract method dari superclass -----
-    @Override
-    public void prosesLayanan() {
-        System.out.println("[Setrika] Pakaian " + getJenisPakaian() + " milik " + getNamaPelanggan()
-                + " dicuci, disetrika, diberi pewangi " + jenisPewangi
-                + (lipatRapi ? " dan dilipat rapi." : " dan digantung."));
-    }
-
-    @Override
-    public int getEstimasiJam() {
-        System.out.println("[Estimasi] Cuci Setrika: pengerjaan sekitar 36 jam.");
-        return 36;
-    }
-
-    // ----- kontrak interface DapatDiantar -----
-    @Override
-    public void antarKeRumah() {
-        System.out.println("[Antar] Kurir mengantar pakaian " + getJenisPakaian()
-                + " (Cuci Setrika) ke rumah " + getNamaPelanggan() + ".");
-    }
-
-    // ----- kontrak interface DapatDinilai -----
-    @Override
-    public void beriRating(int rating) {
-        if (rating < 1 || rating > 5) {
-            throw new IllegalArgumentException("Rating harus 1 - 5!");
-        }
-        this.rating = rating;
-        System.out.println("[Rating] Order #" + getIdOrder() + " (Cuci Setrika) diberi rating "
-                + rating + "/5 oleh " + getNamaPelanggan() + ".");
-    }
-}
-
-/**
- * SUBCLASS 3 (BARU - Modul 6): CuciExpress (selesai cepat, biaya prioritas).
- * Implements DapatDiantar.
- */
-class CuciExpress extends LaundryItemm implements DapatDiantar {
-    private static final double TAMBAHAN_PER_KG = 6000;
-
-    private int targetJam;   // target selesai (jam)
-
-    public CuciExpress(String namaPelanggan, String jenisPakaian, double beratKg, int targetJam) {
-        super(namaPelanggan, jenisPakaian, beratKg);
-        setTargetJam(targetJam);
-    }
-
-    public int getTargetJam() { return targetJam; }
-
-    public void setTargetJam(int targetJam) {
-        if (targetJam < 3 || targetJam > 12) {
-            throw new IllegalArgumentException("Target selesai harus 3 - 12 jam!");
-        }
-        this.targetJam = targetJam;
-    }
-
-    @Override
-    public String getJenisLayanan() {
-        return "Cuci Express";
-    }
-
-    @Override
-    public String getDetail() {
-        return "Selesai dalam " + targetJam + " jam";
-    }
-
-    @Override
-    public double hitungBiaya() {
-        return super.hitungBiaya() + (getBeratKg() * TAMBAHAN_PER_KG);
-    }
-
-    // ----- abstract method dari superclass -----
-    @Override
-    public void prosesLayanan() {
-        System.out.println("[Express] Pakaian " + getJenisPakaian() + " milik " + getNamaPelanggan()
-                + " diproses PRIORITAS, ditargetkan selesai dalam " + targetJam + " jam.");
-    }
-
-    @Override
-    public int getEstimasiJam() {
-        System.out.println("[Estimasi] Cuci Express: target selesai " + targetJam + " jam.");
-        return targetJam;
-    }
-
-    // ----- kontrak interface DapatDiantar -----
-    @Override
-    public void antarKeRumah() {
-        System.out.println("[Antar] Kurir motor mengantar pakaian " + getJenisPakaian()
-                + " (Cuci Express) langsung ke " + getNamaPelanggan() + ".");
-    }
-}
 
 /**
  * SMART LAUNDRY - Tugas Gabungan LKP 2-7
  */
-class Main {
+public class LaundryItemm {
     // ARRAY bertipe SUPERCLASS (upcasting): menampung semua jenis subclass
-    private static LaundryItemm[] daftar = new LaundryItemm[100];
+    private static Pesanan[] daftar = new Pesanan[100];
     private static int jumlah = 0;
     private static Scanner input = new Scanner(System.in);
 
@@ -452,7 +92,7 @@ class Main {
             String pakaian = bacaString("Jenis pakaian  : ");
             double berat = bacaDouble("Berat (kg)     : ");
 
-            LaundryItemm baru;   // referensi superclass
+            Pesanan baru;   // referensi superclass
             switch (jenis) {
                 case 2:
                     int suhu = bacaInt("Suhu pengering (40-90 C)   : ");
@@ -487,12 +127,12 @@ class Main {
         }
         cetakHeader();
         for (int i = 0; i < jumlah; i++) {
-            // DYNAMIC BINDING: tipe referensi LaundryItemm, tapi yang dijalankan
+            // DYNAMIC BINDING: tipe referensi Pesanan, tapi yang dijalankan
             // adalah getJenisLayanan(), getDetail(), hitungBiaya() milik wujud asli objek
             daftar[i].tampilkanInfo();
         }
         cetakGaris();
-        System.out.println("Total order tercatat (static counter): " + LaundryItemm.getTotalOrder());
+        System.out.println("Total order tercatat (static counter): " + Pesanan.getTotalOrder());
     }
 
     // ================= 3. PENCARIAN (overloading) =================
@@ -557,7 +197,7 @@ class Main {
                 prosesOrder(daftar[i]);
             }
         } else if (mode == 2) {
-            LaundryItemm item = cariById(bacaInt("Masukkan ID order: "));
+            Pesanan item = cariById(bacaInt("Masukkan ID order: "));
             if (item == null) {
                 System.out.println("Order tidak ditemukan.");
             } else {
@@ -572,7 +212,7 @@ class Main {
      * Parameter bertipe SUPERCLASS: menerima objek subclass mana pun (UPCASTING).
      * item.prosesLayanan() dipilih saat RUNTIME sesuai wujud asli objek (DYNAMIC BINDING).
      */
-    private static void prosesOrder(LaundryItemm item) {
+    private static void prosesOrder(Pesanan item) {
         System.out.println("\nOrder #" + item.getIdOrder() + " - " + item.getJenisLayanan());
         item.prosesLayanan();   // abstract method yang sudah di-override
         System.out.printf("   Estimasi selesai: %d jam | Biaya: Rp %,.0f%n",
@@ -590,7 +230,7 @@ class Main {
             return;
         }
 
-        LaundryItemm item = cariById(bacaInt("Masukkan ID order: "));
+        Pesanan item = cariById(bacaInt("Masukkan ID order: "));
         if (item == null) {
             System.out.println("Order tidak ditemukan.");
             return;
@@ -622,7 +262,7 @@ class Main {
 
     // ================= 7. STRUK (overloading cetakStruk) =================
     private static void menuStruk() {
-        LaundryItemm item = cariById(bacaInt("Masukkan ID order: "));
+        Pesanan item = cariById(bacaInt("Masukkan ID order: "));
         if (item == null) {
             System.out.println("Order tidak ditemukan.");
             return;
@@ -631,17 +271,17 @@ class Main {
         if (pakaiDiskon.equalsIgnoreCase("y")) {
             double diskon = bacaDouble("Diskon (%): ");
             try {
-                cetakStruk(item, diskon);   
+                cetakStruk(item, diskon);
             } catch (IllegalArgumentException e) {
                 System.out.println("Gagal: " + e.getMessage());
             }
         } else {
-            cetakStruk(item);               
+            cetakStruk(item);
         }
     }
 
     // OVERLOADING (compile-time polymorphism) #1: tanpa diskon
-    private static void cetakStruk(LaundryItemm item) {
+    private static void cetakStruk(Pesanan item) {
         System.out.println("\n========== STRUK #" + item.getIdOrder() + " ==========");
         System.out.println("Pelanggan : " + item.getNamaPelanggan());
         System.out.println("Layanan   : " + item.getJenisLayanan());
@@ -651,7 +291,7 @@ class Main {
     }
 
     // OVERLOADING (compile-time polymorphism) #2: dengan diskon
-    private static void cetakStruk(LaundryItemm item, double diskonPersen) {
+    private static void cetakStruk(Pesanan item, double diskonPersen) {
         System.out.println("\n========== STRUK #" + item.getIdOrder() + " ==========");
         System.out.println("Pelanggan : " + item.getNamaPelanggan());
         System.out.println("Layanan   : " + item.getJenisLayanan());
@@ -663,7 +303,7 @@ class Main {
     }
 
     // ================= HELPER =================
-    private static LaundryItemm cariById(int id) {
+    private static Pesanan cariById(int id) {
         for (int i = 0; i < jumlah; i++) {
             if (daftar[i].getIdOrder() == id) return daftar[i];
         }
